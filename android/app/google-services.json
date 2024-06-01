@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "937022465905",
+    "project_id": "vedio-project-app",
+    "storage_bucket": "vedio-project-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937022465905:android:0f45375eb16e61318a38d0",
+        "android_client_info": {
+          "package_name": "com.example.projectapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "937022465905-dhaqsdk41aolkftkr4lnhiin7j26nb0j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Rp0QZmB8ve_Z8UzcLH38QkRvH0Qdtts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "937022465905-dhaqsdk41aolkftkr4lnhiin7j26nb0j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
