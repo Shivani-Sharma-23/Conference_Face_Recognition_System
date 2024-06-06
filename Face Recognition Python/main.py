@@ -1,30 +1,32 @@
 import threading
-
 import cv2
 from deepface import DeepFace
 
+# Initialize the video capture object
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
+# Set the frame width and height
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 counter = 0
 
-reference_img = cv2.imread("img.jpg")
+# Load the reference image
+reference_img = cv2.imread("img.png")
 
 face_match = False
 
-
+# Define the function to check for a face match
 def check_face(frame):
     global face_match
     try:
-        if DeepFace.verify(frame, reference_img.copy())['verified']:
+        # Use MobileNetV2 for face verification
+        if DeepFace.verify(frame, reference_img.copy(), model_name='Mobilenet')['verified']:
             face_match = True
         else:
             face_match = False
     except ValueError:
         face_match = False
-
 
 while True:
     ret, frame = cap.read()
@@ -47,4 +49,6 @@ while True:
     if key == ord('q'):
         break
 
+# Release the video capture object and close all OpenCV windows
+cap.release()
 cv2.destroyAllWindows()
