@@ -1,54 +1,40 @@
-import threading
-import cv2
-from deepface import DeepFace
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.optimizers import Adam
 
-# Initialize the video capture object
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+# Load the dataset
+train_datagen = ImageDataGenerator(rescale=1./255)
+train_generator = train_datagen.flow_from_directory(
+    'archive',
+    target_size=(224, 224),
+    batch_size=32,
+    class_mode='categorical'
+)
 
-# Set the frame width and height
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+# Load the MobileNetV2 model, pre-trained on ImageNet, without the top classification layer
+base_model = MobileNetV2(weights='imagenet', include_top=False)
 
-counter = 0
+# Add new classification layers
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(1024, activation='relu')(x)
+predictions = Dense(train_generator.num_classes, activation='softmax')(x)
 
-# Load the reference image
-reference_img = cv2.imread("img.png")
+# Create the full model
+model = Model(inputs=base_model.input, outputs=predictions)
 
-face_match = False
+# Freeze the base model layers
+for layer in base_model.layers:
+    layer.trainable = False
 
-# Define the function to check for a face match
-def check_face(frame):
-    global face_match
-    try:
-        # Use MobileNetV2 for face verification
-        if DeepFace.verify(frame, reference_img.copy(), model_name='Mobilenet')['verified']:
-            face_match = True
-        else:
-            face_match = False
-    except ValueError:
-        face_match = False
+# Compile the model
+model.compile(optimizer=Adam(), loss='categorical_crossentropy', metrics=['accuracy'])
 
-while True:
-    ret, frame = cap.read()
+# Train the model
+model.fit(train_generator, epochs=10)
 
-    if ret:
-        if counter % 30 == 0:
-            try:
-                threading.Thread(target=check_face, args=(frame.copy(),)).start()
-            except ValueError:
-                pass
-        counter += 1
-        if face_match:
-            cv2.putText(frame, "MATCH!", (20, 450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
-        else:
-            cv2.putText(frame, "NO MATCH!", (20, 450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-
-        cv2.imshow('video', frame)
-
-    key = cv2.waitKey(1)
-    if key == ord('q'):
-        break
-
-# Release the video capture object and close all OpenCV windows
-cap.release()
-cv2.destroyAllWindows()
+# Save the model
+model.save('face_recognition_model.h5')
